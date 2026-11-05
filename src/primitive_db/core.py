@@ -1,7 +1,7 @@
 """Создание, проверка и удаление схем таблиц."""
 
 from primitive_db.constants import ID_COLUMN, VALID_TYPES
-from primitive_db.utils import validate_name
+from primitive_db.utils import load_table_data, validate_name
 
 
 def get_schema(metadata, table_name):
@@ -56,3 +56,72 @@ def drop_table(metadata, table_name):
     updated = dict(metadata)
     del updated[table_name]
     return updated
+
+
+def validate_values(schema, values, allow_id=True):
+    """Проверить существование столбцов и строгие типы значений."""
+    for name, value in values.items():
+        if name not in schema:
+            raise KeyError(name)
+        if not allow_id and name == ID_COLUMN:
+            raise ValueError("Некорректное значение: ID. Попробуйте снова.")
+        if type(value) is not VALID_TYPES[schema[name]]:
+            raise ValueError(f"Некорректное значение: {value}. Попробуйте снова.")
+
+
+def read_rows(schema, table_name):
+    """Прочитать записи и не допустить перезаписи повреждённых данных."""
+    rows = load_table_data(table_name)
+    identifiers = set()
+    for row in rows:
+        if set(row) != set(schema):
+            raise ValueError("Ошибка: Структура записи не соответствует схеме.")
+        validate_values(schema, row)
+        identifier = row[ID_COLUMN]
+        if identifier < 1 or identifier in identifiers:
+            raise ValueError("Ошибка: Некорректный ID записи.")
+        identifiers.add(identifier)
+    return rows
+
+
+def matches(row, where_clause):
+    """Проверить равенство с учётом точного типа значения."""
+    return all(
+        type(row[name]) is type(value) and row[name] == value
+        for name, value in (where_clause or {}).items()
+    )
+
+
+def insert(metadata, table_name, values):
+    """Создать запись с автоматическим уникальным ID."""
+    schema = get_schema(metadata, table_name)
+    columns = [name for name in schema if name != ID_COLUMN]
+    if len(columns) != len(values):
+        raise ValueError(f"Некорректное значение: {values}. Попробуйте снова.")
+    record = dict(zip(columns, values))
+    validate_values(schema, record)
+    rows = read_rows(schema, table_name)
+    identifier = max((row[ID_COLUMN] for row in rows), default=0) + 1
+    rows.append({ID_COLUMN: identifier, **record})
+    return rows
+
+
+def select(table_data, where_clause=None):
+    """Вернуть копии подходящих записей либо всех записей."""
+    return [dict(row) for row in table_data if matches(row, where_clause)]
+
+
+def update(table_data, set_clause, where_clause):
+    """Обновить копии только подходящих записей."""
+    updated = []
+    for row in table_data:
+        record = dict(row)
+        if matches(row, where_clause):
+            record.update(set_clause)
+        updated.append(record)
+    return updated
+
+
+def delete(table_data, where_clause):
+    """Вернуть записи, которые не соответствуют условию удаления."""
+    return [dict(row) for row in table_data if not matches(row, where_clause)]

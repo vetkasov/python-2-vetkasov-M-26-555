@@ -1,6 +1,6 @@
 [project]
 name = "project-2-vetkasov-m-26-555"
-version = "0.2.0"
+version = "0.3.0"
 description = "Учебная консольная база данных, группа M-26-555"
 readme = "README.md"
 authors = [
@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "prettytable>=3.18.0",
     "prompt>=0.4.1",
 ]
 

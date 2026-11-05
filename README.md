@@ -74,4 +74,34 @@ ID:int всегда первый. Имена регистрозависимы, �
 
 [![03: управление таблицами](https://asciinema.org/a/stYf1EwL6AHJBDdW.svg)](https://asciinema.org/a/stYf1EwL6AHJBDdW)
 
-Локальная запись: demo/03-tables.cast. CRUD и декораторы ещё не добавлены.
+Локальная запись: demo/03-tables.cast.
+
+## Этап 3. CRUD
+
+```text
+insert into users values ("Sergei", 28, true)
+select from users
+select from users where age = 28
+update users set age = 29 where name = "Sergei"
+delete from users where ID = 1
+info users
+```
+
+Одна команда insert добавляет одну запись в одну таблицу. Строки только
+в кавычках; числа и bool — без кавычек. Булевы значения любого регистра,
+ключевые слова команд только строчными. where — одно равенство; update
+изменяет один столбец. Несколько групп values и лишние токены запрещены.
+ID генерируется автоматически как max существующих ID + 1; изменять ID нельзя.
+Все пользовательские поля обязательны. Пробелы и запятые внутри строк
+сохраняются; поддерживаются экранированные кавычки и обратный слеш.
+
+Данные хранятся в data/<имя>.json. Чтобы имена users и Users различались
+на macOS, заглавные буквы в именах файлов кодируются как %XX; например,
+Users хранится в data/%55sers.json, а users — в data/users.json.
+
+Проверки: `uv run python tests/check_crud.py`.
+
+[![04: CRUD](https://asciinema.org/a/2Usx0bbE0PljE3XA.svg)](https://asciinema.org/a/2Usx0bbE0PljE3XA)
+
+Локальная запись: demo/04-crud.cast. Подтверждение удаления и кэш
+будут добавлены на следующем этапе.

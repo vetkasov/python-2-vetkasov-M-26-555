@@ -24,6 +24,8 @@ def read_json(filepath, default):
             return json.load(source)
     except FileNotFoundError:
         return default
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Ошибка: Некорректный JSON в файле {filepath}.") from error
 
 
 def write_json(filepath, data):
@@ -60,7 +62,11 @@ def save_metadata(filepath, data):
 
 def table_path(table_name):
     """Сформировать безопасный путь к данным таблицы."""
-    return os.path.join(DATA_DIR, f"{validate_name(table_name)}.json")
+    validate_name(table_name)
+    filename = "".join(
+        f"%{ord(char):02x}" if char.isupper() else char for char in table_name
+    )
+    return os.path.join(DATA_DIR, f"{filename}.json")
 
 
 def load_table_data(table_name):
