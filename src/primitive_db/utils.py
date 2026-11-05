@@ -4,15 +4,12 @@ import json
 import os
 import time
 
-from primitive_db.constants import DATA_DIR
+from primitive_db.constants import DATA_DIR, FILE_MODE, NAME_CHARACTERS
 
 
 def validate_name(name):
     """Разрешить только непустое имя из латиницы, цифр и подчёркивания."""
-    if not name or any(
-        char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
-        for char in name
-    ):
+    if not name or any(char not in NAME_CHARACTERS for char in name):
         raise ValueError(f"Некорректное значение: {name}. Попробуйте снова.")
     return name
 
@@ -34,7 +31,7 @@ def write_json(filepath, data):
     if parent:
         os.makedirs(parent, exist_ok=True)
     temporary = f"{filepath}.{os.getpid()}.{time.monotonic_ns()}.tmp"
-    descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, FILE_MODE)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as target:
             json.dump(data, target, ensure_ascii=False, indent=2)

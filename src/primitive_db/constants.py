@@ -3,6 +3,21 @@
 META_FILE = "db_meta.json"
 DATA_DIR = "data"
 ID_COLUMN = "ID"
+FILE_MODE = 0o600
+COMMAND_PROMPT = "Введите команду: "
+NAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+COMMAND_NAMES = {
+    "create_table",
+    "list_tables",
+    "drop_table",
+    "insert",
+    "select",
+    "update",
+    "delete",
+    "info",
+    "help",
+    "exit",
+}
 VALID_TYPES = {"int": int, "str": str, "bool": bool}
 HELP_TEXT = (
     "***Операции с данными***\nФункции:\n"

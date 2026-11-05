@@ -1,6 +1,7 @@
 """Создание, проверка и удаление схем таблиц."""
 
 from primitive_db.constants import ID_COLUMN, VALID_TYPES
+from primitive_db.decorators import confirm_action, handle_db_errors, log_time
 from primitive_db.utils import load_table_data, validate_name
 
 
@@ -20,6 +21,7 @@ def get_schema(metadata, table_name):
     return schema
 
 
+@handle_db_errors
 def create_table(metadata, table_name, columns):
     """Вернуть новые метаданные с проверенной схемой и первым ID:int."""
     validate_name(table_name)
@@ -50,6 +52,8 @@ def create_table(metadata, table_name, columns):
     return updated
 
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
     """Вернуть метаданные без существующей таблицы."""
     get_schema(metadata, table_name)
@@ -92,6 +96,8 @@ def matches(row, where_clause):
     )
 
 
+@handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Создать запись с автоматическим уникальным ID."""
     schema = get_schema(metadata, table_name)
@@ -106,11 +112,14 @@ def insert(metadata, table_name, values):
     return rows
 
 
+@handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
     """Вернуть копии подходящих записей либо всех записей."""
     return [dict(row) for row in table_data if matches(row, where_clause)]
 
 
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
     """Обновить копии только подходящих записей."""
     updated = []
@@ -122,6 +131,8 @@ def update(table_data, set_clause, where_clause):
     return updated
 
 
+@handle_db_errors
+@confirm_action("удаление записей")
 def delete(table_data, where_clause):
     """Вернуть записи, которые не соответствуют условию удаления."""
     return [dict(row) for row in table_data if not matches(row, where_clause)]

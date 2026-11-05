@@ -1,4 +1,4 @@
-.PHONY: install run lint format build publish-dry-run check
+.PHONY: install run lint format build publish-dry-run test check
 
 install:
 	uv sync
@@ -18,4 +18,9 @@ build:
 publish-dry-run: build
 	uv publish --dry-run --trusted-publishing never
 
-check: lint publish-dry-run
+test:
+	uv run python tests/check_tables.py
+	uv run python tests/check_crud.py
+	uv run python tests/check_decorators.py
+
+check: lint test publish-dry-run

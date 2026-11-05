@@ -1,5 +1,6 @@
 """Строгий разбор команд без SQL-библиотек и выполнения кода."""
 
+from primitive_db.constants import COMMAND_NAMES
 from primitive_db.utils import validate_name
 
 
@@ -76,19 +77,7 @@ def parse_tokens(tokens):
     """Проверить точную структуру команды и отсутствие лишних токенов."""
     command = word(tokens[0])
     result = {"command": command}
-    supported = {
-        "create_table",
-        "list_tables",
-        "drop_table",
-        "insert",
-        "select",
-        "update",
-        "delete",
-        "info",
-        "help",
-        "exit",
-    }
-    if command not in supported:
+    if command not in COMMAND_NAMES:
         return {"command": "unknown", "name": command}
     if command in ("help", "exit", "list_tables"):
         if len(tokens) != 1:

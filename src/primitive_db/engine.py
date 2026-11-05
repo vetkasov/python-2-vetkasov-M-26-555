@@ -1,10 +1,13 @@
 """Командный цикл и сохранение результатов операций."""
 
+import json
+
 import prompt
 from prettytable import PrettyTable
 
 from primitive_db import core
-from primitive_db.constants import HELP_TEXT, ID_COLUMN, META_FILE
+from primitive_db.constants import COMMAND_PROMPT, HELP_TEXT, ID_COLUMN, META_FILE
+from primitive_db.decorators import create_cacher, handle_db_errors
 from primitive_db.parser import parse_command
 from primitive_db.utils import (
     load_metadata,
@@ -12,6 +15,20 @@ from primitive_db.utils import (
     save_metadata,
     save_table_data,
 )
+
+_cache_result = create_cacher()
+
+
+def reset_cache():
+    """Заменить кэшер после успешно сохранённого изменения базы."""
+    global _cache_result
+    _cache_result = create_cacher()
+
+
+def select_rows(schema, name, where):
+    """Кэшировать запрос по имени таблицы и стабильному условию."""
+    key = json.dumps([name, where], sort_keys=True, ensure_ascii=False)
+    return _cache_result(key, lambda: core.select(core.read_rows(schema, name), where))
 
 
 def print_help():
@@ -29,17 +46,24 @@ def manage_table(metadata, request):
     name = request["table"]
     if request["command"] == "create_table":
         updated = core.create_table(metadata, name, request["columns"])
+        if updated is None:
+            return
         save_metadata(META_FILE, updated)
+        reset_cache()
         columns = format_columns(updated[name])
         print(f'Таблица "{name}" успешно создана со столбцами: {columns}')
     else:
+        core.get_schema(metadata, name)
         updated = core.drop_table(metadata, name)
+        if updated is None:
+            return
         save_metadata(META_FILE, updated)
         try:
             remove_table_data(name)
         except OSError:
             save_metadata(META_FILE, metadata)
             raise
+        reset_cache()
         print(f'Таблица "{name}" успешно удалена.')
 
 
@@ -58,12 +82,15 @@ def operate_rows(metadata, request):
     schema = core.get_schema(metadata, name)
     if command == "insert":
         updated = core.insert(metadata, name, request["values"])
+        if updated is None:
+            return
         save_table_data(name, updated)
+        reset_cache()
         identifier = updated[-1][ID_COLUMN]
         print(f'Запись с ID={identifier} успешно добавлена в таблицу "{name}".')
         return
-    rows = core.read_rows(schema, name)
     if command == "info":
+        rows = core.read_rows(schema, name)
         print(f"Таблица: {name}")
         print(f"Столбцы: {format_columns(schema)}")
         print(f"Количество записей: {len(rows)}")
@@ -71,14 +98,20 @@ def operate_rows(metadata, request):
     where = request["where"]
     core.validate_values(schema, where or {})
     if command == "select":
-        display_rows(schema, core.select(rows, where))
+        rows = select_rows(schema, name, where)
+        if rows is not None:
+            display_rows(schema, rows)
         return
+    rows = core.read_rows(schema, name)
     if command == "update":
         core.validate_values(schema, request["set"], allow_id=False)
         updated = core.update(rows, request["set"], where)
     else:
         updated = core.delete(rows, where)
+    if updated is None:
+        return
     save_table_data(name, updated)
+    reset_cache()
     for row in rows:
         if core.matches(row, where):
             identifier = row[ID_COLUMN]
@@ -88,6 +121,7 @@ def operate_rows(metadata, request):
                 print(f'Запись с ID={identifier} успешно удалена из таблицы "{name}".')
 
 
+@handle_db_errors
 def execute(text):
     """Выполнить команду; False означает завершение цикла."""
     request = parse_command(text)
@@ -117,15 +151,9 @@ def run():
     print_help()
     while True:
         try:
-            text = prompt.string("Введите команду: ")
+            text = prompt.string(COMMAND_PROMPT)
             if execute(text) is False:
                 break
         except (EOFError, KeyboardInterrupt):
             print()
             break
-        except ValueError as error:
-            print(str(error))
-        except KeyError as error:
-            print(f"Ошибка: Таблица или столбец {error} не найден.")
-        except OSError as error:
-            print(f"Ошибка работы с файлами: {error}")
