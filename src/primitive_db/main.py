@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Точка входа учебного проекта базы данных."""
+"""Точка входа подготовленного Python-пакета."""
+
+from primitive_db.engine import welcome
 
 
 def main():
-    """Сообщить об успешном запуске проекта."""
-    print("DB project is running!")
+    """Запустить подготовленный командный интерфейс."""
+    welcome()
 
 
 if __name__ == "__main__":
