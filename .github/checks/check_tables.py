@@ -10,7 +10,7 @@ from primitive_db import engine
 from primitive_db.constants import META_FILE
 from primitive_db.utils import load_metadata, load_table_data, save_table_data
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 EXECUTABLE = os.path.join(ROOT, ".venv", "bin", "database")
 
 

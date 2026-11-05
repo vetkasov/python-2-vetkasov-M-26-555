@@ -20,8 +20,8 @@ publish-dry-run: build
 	  'uv publish --dry-run --trusted-publishing never < /dev/null 2>&1 | cat'
 
 test:
-	uv run python tests/check_tables.py
-	uv run python tests/check_crud.py
-	uv run python tests/check_decorators.py
+	uv run python .github/checks/check_tables.py
+	uv run python .github/checks/check_crud.py
+	uv run python .github/checks/check_decorators.py
 
 check: lint test publish-dry-run
