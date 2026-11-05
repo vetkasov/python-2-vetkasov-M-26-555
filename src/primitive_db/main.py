@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Точка входа подготовленного Python-пакета."""
+"""Точка входа консольной базы данных."""
 
-from primitive_db.engine import welcome
+from primitive_db.engine import run
 
 
 def main():
-    """Запустить подготовленный командный интерфейс."""
-    welcome()
+    """Запустить командный цикл."""
+    run()
 
 
 if __name__ == "__main__":
