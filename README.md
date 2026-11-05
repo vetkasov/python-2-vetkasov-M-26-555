@@ -7,6 +7,8 @@
 CRUD-операции, сохранение в JSON, подтверждение удаления, замеры времени
 и кэширование запросов. Приложение процедурное, без классов.
 
+[![Project checks](https://github.com/vetkasov/python2-vetkasov-M-26-555/actions/workflows/check.yml/badge.svg?branch=ver2)](https://github.com/vetkasov/python2-vetkasov-M-26-555/actions/workflows/check.yml)
+
 ## Установка и запуск
 
 Требуется [uv](https://docs.astral.sh/uv/getting-started/installation/).
@@ -142,8 +144,9 @@ GitHub Actions запускает их для ветки ver2 на Python 3.12 �
 `make build` выполняет `uv build --clear`: в dist остаётся только текущая сборка.
 `make publish-dry-run` выполняет `uv publish --dry-run --trusted-publishing never`.
 Настоящая публикация на PyPI не выполняется; токены и пароли не передаются.
-В интерактивном терминале uv может запросить авторизацию даже для dry-run.
-Проверка запускается без управляющего терминала и с закрытым стандартным вводом.
+Чтобы uv не запрашивал авторизацию в интерактивном терминале, стандартный
+ввод закрыт, а оба потока вывода передаются через cat. Bash pipefail сохраняет
+код ошибки uv, поэтому неудачная проверка не становится успешной из-за конвейера.
 Фиктивные учётные данные не используются.
 
 ```bash

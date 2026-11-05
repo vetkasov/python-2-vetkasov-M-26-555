@@ -16,7 +16,8 @@ build:
 	uv build --clear
 
 publish-dry-run: build
-	uv publish --dry-run --trusted-publishing never
+	bash -o pipefail -c \
+	  'uv publish --dry-run --trusted-publishing never < /dev/null 2>&1 | cat'
 
 test:
 	uv run python tests/check_tables.py
