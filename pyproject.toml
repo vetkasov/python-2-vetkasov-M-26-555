@@ -1,0 +1,21 @@
+[project]
+name = "project-2-vetkasov-m-26-555"
+version = "0.1.0"
+description = "Учебная консольная база данных, группа M-26-555"
+readme = "README.md"
+authors = [
+    { name = "arseny", email = "avetkasov-22@yandex.ru" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+database = "primitive_db.main:main"
+project = "primitive_db.main:main"
+
+[build-system]
+requires = ["uv_build>=0.11.17,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "primitive_db"
