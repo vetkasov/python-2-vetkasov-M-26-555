@@ -151,8 +151,8 @@ def run():
     print_help()
     while True:
         try:
-            text = prompt.string(COMMAND_PROMPT)
-            if execute(text) is False:
+            text = prompt.string(COMMAND_PROMPT, empty=True)
+            if execute(text or "") is False:
                 break
         except (EOFError, KeyboardInterrupt):
             print()

@@ -72,7 +72,7 @@ def check_failed_drop():
         raise OSError("simulated failure")
 
     engine.save_metadata = fail_save
-    prompt.string = lambda message: "y"
+    prompt.string = lambda message, **kwargs: "y"
     try:
         try:
             engine.execute("drop_table protected")

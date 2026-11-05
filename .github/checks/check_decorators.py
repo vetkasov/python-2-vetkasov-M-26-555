@@ -20,6 +20,11 @@ def check_confirmation_and_timing():
     assert "Функция select выполнилась за " in output
     assert utils.load_table_data("users") == [{"ID": 1, "name": "A"}]
     assert "users" in utils.load_metadata(META_FILE)
+    for command in ("delete from users where ID=1", "drop_table users"):
+        blank = run_cli(command + "\n\nlist_tables\nexit\n")
+        assert "Операция отменена." in blank and "- users" in blank
+        assert utils.load_table_data("users") == [{"ID": 1, "name": "A"}]
+    run_cli("\n" * 1200 + "exit\n")
     output = run_cli("delete from users where ID=1\ny\ndrop_table users\ny\nexit\n")
     assert 'Запись с ID=1 успешно удалена из таблицы "users".' in output
     assert 'Таблица "users" успешно удалена.' in output
@@ -55,7 +60,7 @@ def check_cache_keys_and_invalidation():
         return original_select(*args)
 
     core.select = counted_select
-    prompt.string = lambda message: "y"
+    prompt.string = lambda message, **kwargs: "y"
     try:
         engine.execute("create_table a value:int")
         engine.execute("create_table b value:int")
@@ -88,11 +93,11 @@ def check_cache_keys_and_invalidation():
             engine.save_table_data = original_save
         assert engine.select_rows(schema, "a", {"ID": 1})[0]["value"] == 4
         assert len(calls) == 5
-        prompt.string = lambda message: "n"
+        prompt.string = lambda message, **kwargs: "n"
         engine.execute("delete from a where ID=1")
         assert engine.select_rows(schema, "a", {"ID": 1})[0]["value"] == 4
         assert len(calls) == 5
-        prompt.string = lambda message: "y"
+        prompt.string = lambda message, **kwargs: "y"
         engine.execute("delete from a where ID=1")
         assert engine.select_rows(schema, "a", {"ID": 1}) == []
         assert len(calls) == 6
@@ -116,7 +121,7 @@ def check_failed_file_removal():
         raise OSError("simulated removal failure")
 
     engine.remove_table_data = fail_remove
-    prompt.string = lambda message: "y"
+    prompt.string = lambda message, **kwargs: "y"
     try:
         engine.execute("drop_table users")
     finally:
